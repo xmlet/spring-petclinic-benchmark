@@ -18,7 +18,6 @@ package org.springframework.samples.petclinic.pet
 import dev.datastar.kotlin.sdk.ElementPatchMode
 import dev.datastar.kotlin.sdk.PatchElementsOptions
 import dev.datastar.kotlin.sdk.blocking.ServerSentEventGenerator
-import htmlflow.HtmlView
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.springframework.http.HttpStatus
@@ -60,8 +59,6 @@ class PetController(
     private val ownersDetails: OwnersDetails,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
-    val safeInitPetCreate: HtmlView<Owner> = ownersDetails.petAddView.threadSafe()
-    val safePetRow: HtmlView<Pet> = ownersDetails.petRow.threadSafe()
 
     @ModelAttribute("types")
     fun populatePetTypes(): Collection<PetType> = this.pets.findPetTypes()
@@ -87,7 +84,7 @@ class PetController(
             val response = adapterResponse(stream)
             val generator = ServerSentEventGenerator(response)
             generator.patchElements(
-                safeInitPetCreate.render(owner),
+                ownersDetails.petAddView.render(owner),
                 PatchElementsOptions(
                     selector = "#pets-table-body",
                     mode = ElementPatchMode.Prepend,
@@ -114,7 +111,7 @@ class PetController(
                 pets.save(pet)
                 generator.patchSignals(resetPetSignals("New"))
                 generator.patchElements(
-                    safePetRow.render(pet),
+                    ownersDetails.petRow.render(pet),
                     PatchElementsOptions(
                         selector = "#pets-add",
                         mode = ElementPatchMode.Replace,

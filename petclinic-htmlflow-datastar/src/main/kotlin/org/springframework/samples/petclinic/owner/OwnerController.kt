@@ -18,7 +18,6 @@ package org.springframework.samples.petclinic.owner
 import dev.datastar.kotlin.sdk.ElementPatchMode
 import dev.datastar.kotlin.sdk.PatchElementsOptions
 import dev.datastar.kotlin.sdk.blocking.ServerSentEventGenerator
-import htmlflow.HtmlView
 import jakarta.validation.Valid
 import kotlinx.serialization.json.Json
 import org.springframework.http.HttpStatus
@@ -63,7 +62,6 @@ class OwnerController(
 ) {
     val ownersFind = OwnersFind()
     val ownersCreate = OwnersCreate()
-    val safeOwnerDetails: HtmlView<Any> = ownersDetails.view.threadSafe()
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -121,7 +119,7 @@ class OwnerController(
         for (pet in owner.getPets()) {
             pet.visits = visits.findByPetId(pet.id!!)
         }
-        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(safeOwnerDetails.render(owner))
+        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(ownersDetails.view.render(owner))
     }
 
     @GetMapping(Routes.OWNERS_EDIT)
