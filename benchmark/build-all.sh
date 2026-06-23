@@ -3,25 +3,24 @@
 #
 # Usage: ./build-all.sh
 
-set -e
+set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Clean previous server logs
-rm -rf "$SCRIPT_DIR/results/server_logs"
+source "$SCRIPT_DIR/lib/common.sh"
 
-echo "Building petclinic-thymeleaf..."
+print_info "Building petclinic-thymeleaf..."
 "$SCRIPT_DIR/../petclinic-thymeleaf/gradlew" -p "$SCRIPT_DIR/../petclinic-thymeleaf" build --no-daemon
 
-echo "Building petclinic-htmlflow-datastar..."
+print_info "Building petclinic-htmlflow-datastar..."
 "$SCRIPT_DIR/../petclinic-htmlflow-datastar/gradlew" -p "$SCRIPT_DIR/../petclinic-htmlflow-datastar" build --no-daemon
 
-echo "Building petclinic-react backend..."
+print_info "Building petclinic-react backend..."
 cd "$SCRIPT_DIR/../petclinic-react"
-./mvnw clean package -q
+./mvnw clean package
 
-echo "Installing petclinic-react frontend dependencies..."
+print_info "Installing petclinic-react frontend dependencies..."
 cd "$SCRIPT_DIR/../petclinic-react/client"
 npm install --legacy-peer-deps
 cd "$SCRIPT_DIR"
 
-echo "All implementations built successfully."
+print_info "All implementations built successfully."

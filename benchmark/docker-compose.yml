@@ -1,0 +1,45 @@
+services:
+  petclinic-thymeleaf:
+    build:
+      context: ..
+      dockerfile: benchmark/docker/Dockerfiles/Dockerfile.thymeleaf
+    network_mode: "host"
+
+  petclinic-htmlflow-datastar:
+    build:
+      context: ..
+      dockerfile: benchmark/docker/Dockerfiles/Dockerfile.htmlflow-datastar
+    network_mode: "host"
+
+  petclinic-react-backend:
+    build:
+      context: ..
+      dockerfile: benchmark/docker/Dockerfiles/Dockerfile.react-backend
+    network_mode: "host"
+
+  petclinic-react-frontend:
+    build:
+      context: ..
+      dockerfile: benchmark/docker/Dockerfiles/Dockerfile.react-frontend
+    network_mode: "host"
+    environment:
+      PORT: 4444
+
+  jmeter:
+    build:
+      context: ..
+      dockerfile: benchmark/docker/Dockerfiles/Dockerfile.jmeter
+    network_mode: "host"
+    depends_on:
+      - petclinic-thymeleaf
+      - petclinic-htmlflow-datastar
+      - petclinic-react-backend
+      - petclinic-react-frontend
+    volumes:
+      - jmeter-results:/benchmark/results
+    environment:
+      TIMESTAMP: ${TIMESTAMP}
+    restart: "no"
+
+volumes:
+  jmeter-results:

@@ -1,0 +1,6 @@
+FROM node:20-bookworm
+WORKDIR /app/client
+COPY petclinic-react/client/ .
+RUN npm install --legacy-peer-deps
+ENV PORT=4444
+CMD ["npm", "start"]

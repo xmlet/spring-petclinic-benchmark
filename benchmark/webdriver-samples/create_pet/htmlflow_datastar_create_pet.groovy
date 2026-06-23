@@ -19,11 +19,10 @@ wait.until({ d ->
 // 2. Click "Add New Pet" button to trigger SSE GET that patches the form into the DOM
 wait.until({ d ->
     try {
-        def btn = d.findElement(By.xpath("//button[contains(., 'Add New Pet')]"))
-        btn.click()
-        return true
-    } catch (e) { return false }
+        d.findElement(By.xpath("//button[contains(., 'Add New Pet')]")).isDisplayed()
+    } catch (e) { false }
 })
+WDS.browser.findElement(By.xpath("//button[contains(., 'Add New Pet')]")).click()
 wait.until({ d ->
     try {
         d.findElement(By.cssSelector("#input-name-new")).isDisplayed()

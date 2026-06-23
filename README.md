@@ -8,26 +8,49 @@ Compares the performance of three web architectural patterns using the [Spring P
 | Petclinic-HtmlFlow-DataStar | 8081 | Hypermedia SSE — partial DOM updates |
 | Petclinic-React | 8082 (backend) / 4444 (frontend) | SPA — REST API + client-side rendering |
 
-## Quick Start
+## Quick Start (Docker)
+
+```bash
+cd benchmark
+./run-benchmark.sh --docker
+```
+
+Or step by step:
+
+```bash
+cd benchmark
+docker compose build
+docker compose up -d
+docker compose logs -f jmeter
+
+# Results are extracted to benchmark/results/report_<timestamp>/
+```
+
+## Quick Start (Local)
 
 ```bash
 # Build all implementations
 ./benchmark/build-all.sh
 
-# Start all services (Ctrl+C to stop)
-./benchmark/start-all.sh
-
-# Run benchmark
-./benchmark/petclinic_benchmark_runner.sh --headless
+# Run benchmark (starts services, runs JMeter, stops services)
+./benchmark/run-benchmark.sh --local
+# or simply
+./benchmark/run-benchmark.sh
 ```
+
+Services are started automatically, benchmark runs, then everything shuts down.
 
 ## Prerequisites
 
+### Local
 - Java 21+
 - JMeter 5.6.3+ with [WebDriver plugin](https://jmeter-plugins.org/plugins/install/) (`jpgc-webdriver`)
 - Chrome/Chromium + ChromeDriver
 - Maven 3.8+ (React backend)
 - npm (React frontend)
+
+### Docker
+- Docker Compose v2+
 
 ## Benchmark
 
@@ -38,7 +61,7 @@ The benchmark runs two test types per implementation:
 
 ### Configuration
 
-Edit the variables at the top of `benchmark/petclinic_benchmark_runner.sh`:
+Edit the variables at the top of `benchmark/jmeter/run-jmeter.sh`:
 
 ```bash
 TEST_THREADS=1                # concurrent browsers
@@ -48,8 +71,8 @@ WARMUP_LOOPS=10               # warm-up iterations (discarded from results)
 
 ### Benchmark Phases
 
-1. **Warm-up** — Runs `WARMUP_LOOPS` iterations to warm JVM caches, JIT compilation, and connection pools. Results are discarded.
-2. **Main Benchmark** — Runs `TEST_LOOPS` iterations with results saved to JTL.
+1. **Warm-up** — Runs `WARMUP_LOOPS` iterations to warm JVM caches, JIT compilation, and connection pools. Results are discarded. Output is captured to `warmup.log`.
+2. **Main Benchmark** — Runs `TEST_LOOPS` iterations with results saved to JTL and stdout/stderr captured to `jmeter.log`.
 
 ### Results
 
@@ -57,21 +80,65 @@ Results are saved to `benchmark/results/report_YYYYMMDD_HHMMSS/`:
 
 | File | Description |
 |---|---|
-| `benchmark/results/report_.../results.jtl` | Raw JMeter results |
-| `benchmark/results/report_.../jmeter.log` | JMeter log |
-| `benchmark/results/report_.../warmup.log` | Warm-up phase log |
-| `benchmark/results/report_.../report/index.html` | HTML report (with `--headless`) |
+| `results.jtl` | Raw JMeter results |
+| `jmeter.log` | JMeter main benchmark log |
+| `warmup.log` | Warm-up phase log |
+| `report/index.html` | HTML report |
+| `server_logs/*.log` | Per-service server logs |
+
+## Docker Architecture
+
+Uses `network_mode: "host"` so all containers share the host network. This avoids cross-container networking issues: the browser (inside the JMeter container) accesses all servers via `localhost`, and the React frontend's API calls to `localhost:8082` reach the backend without any proxy configuration.
+
+| Container | Base Image | Build Tool | Ports |
+|---|---|---|---|
+| `petclinic-thymeleaf` | `eclipse-temurin:17` | Gradle `bootJar` | 8080 |
+| `petclinic-htmlflow-datastar` | `eclipse-temurin:21` | Gradle `bootJar` | 8081 |
+| `petclinic-react-backend` | `eclipse-temurin:17` | Maven `package` | 8082 |
+| `petclinic-react-frontend` | `node:20` | `npm install --legacy-peer-deps` | 4444 |
+| `jmeter` | `debian:bookworm-slim` | — (JMeter binary + Plugins Manager) | — |
+
+### Services
+
+**petclinic-thymeleaf** — Multi-stage build: JDK 17 builds the Gradle project into a JAR, then runs with JRE 17 on port 8080.
+
+**petclinic-htmlflow-datastar** — Same pattern as thymeleaf but with JDK/JRE 21, runs on port 8081.
+
+**petclinic-react-backend** — Multi-stage build: JDK 17 builds the Maven project into a JAR, then runs with JRE 17 on port 8082.
+
+**petclinic-react-frontend** — Node.js image installs npm dependencies, runs webpack dev server on port 4444.
+
+**jmeter** — Single-stage:
+1. Installs Chromium + ChromeDriver for WebDriver browser tests
+2. Downloads Apache JMeter 5.6.3
+3. Installs WebDriver plugin and Custom Samplers via Plugins Manager
+4. Entrypoint waits for all three servers to be reachable, then runs JMeter (always headless)
 
 ## Project Structure
 
 ```
-├── petclinic-thymeleaf/           # Thymeleaf MPA (Kotlin, Gradle)
-├── petclinic-htmlflow-datastar/   # HtmlFlow-DataStar SSE (Kotlin, Gradle)
-├── petclinic-react/               # React SPA (Java + TypeScript, Maven + npm)
-└── benchmark/
-    ├── jmeter/                    # JMeter test plan
-    ├── scripts/                   # Selenium Groovy scripts
-    ├── build-all.sh
-    ├── start-all.sh
-    └── petclinic_benchmark_runner.sh
+├── petclinic-thymeleaf/                   # Thymeleaf MPA (Kotlin, Gradle)
+├── petclinic-htmlflow-datastar/           # HtmlFlow-DataStar SSE (Kotlin, Gradle)
+├── petclinic-react/                       # React SPA (Java + TypeScript, Maven + npm)
+├── .dockerignore                          # Docker build context exclusions
+├── benchmark/
+│   ├── docker/
+│   │   ├── Dockerfiles/
+│   │   │   ├── Dockerfile.thymeleaf
+│   │   │   ├── Dockerfile.htmlflow-datastar
+│   │   │   ├── Dockerfile.react-backend
+│   │   │   ├── Dockerfile.react-frontend
+│   │   │   └── Dockerfile.jmeter
+│   │   └── entrypoint-jmeter.sh
+│   ├── docker-compose.yml
+│   ├── jmeter/
+│   │   ├── petclinic_create_pet_webdriver.jmx
+│   │   └── run-jmeter.sh
+│   ├── webdriver-samples/
+│   │   ├── initial_load/
+│   │   └── create_pet/
+│   ├── lib/
+│   │   └── common.sh                      # Shared functions (wait_for, colors, print helpers)
+│   ├── build-all.sh
+│   └── run-benchmark.sh                   # Entry point (--docker / --local)
 ```

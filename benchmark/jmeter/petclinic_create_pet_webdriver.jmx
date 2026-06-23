@@ -36,7 +36,7 @@ Each implementation has 2 test types:
           </elementProp>
           <elementProp name="SCRIPT_DIR" elementType="Argument">
             <stringProp name="Argument.name">SCRIPT_DIR</stringProp>
-            <stringProp name="Argument.value">scripts</stringProp>
+            <stringProp name="Argument.value">../webdriver-samples</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="THYMELEAF_PORT" elementType="Argument">
@@ -104,7 +104,7 @@ Each implementation has 2 test types:
         <hashTree/>
         <com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler guiclass="com.googlecode.jmeter.plugins.webdriver.sampler.gui.WebDriverSamplerGui" testclass="com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler" testname="Thymeleaf Initial Load" enabled="true">
           <stringProp name="WebDriverSampler.script"><![CDATA[
-new GroovyShell(new Binding([WDS: WDS, port: WDS.vars.get('THYMELEAF_PORT')])).evaluate(new File(WDS.vars.get('SCRIPT_DIR') + '/inital_load/initial_load.groovy'))
+new GroovyShell(new Binding([WDS: WDS, port: WDS.vars.get('THYMELEAF_PORT')])).evaluate(new File(WDS.vars.get('SCRIPT_DIR') + '/initial_load/initial_load.groovy'))
 ]]></stringProp>
           <stringProp name="WebDriverSampler.parameters"></stringProp>
           <stringProp name="WebDriverSampler.language">groovy</stringProp>
@@ -274,7 +274,7 @@ new GroovyShell(new Binding([WDS: WDS])).evaluate(new File(WDS.vars.get('SCRIPT_
         <hashTree/>
         <com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler guiclass="com.googlecode.jmeter.plugins.webdriver.sampler.gui.WebDriverSamplerGui" testclass="com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler" testname="HtmlFlow DataStar Initial Load" enabled="true">
           <stringProp name="WebDriverSampler.script"><![CDATA[
-new GroovyShell(new Binding([WDS: WDS, port: WDS.vars.get('HTMLFLOW_PORT')])).evaluate(new File(WDS.vars.get('SCRIPT_DIR') + '/inital_load/initial_load.groovy'))
+new GroovyShell(new Binding([WDS: WDS, port: WDS.vars.get('HTMLFLOW_PORT')])).evaluate(new File(WDS.vars.get('SCRIPT_DIR') + '/initial_load/initial_load.groovy'))
 ]]></stringProp>
           <stringProp name="WebDriverSampler.parameters"></stringProp>
           <stringProp name="WebDriverSampler.language">groovy</stringProp>
@@ -444,7 +444,7 @@ new GroovyShell(new Binding([WDS: WDS])).evaluate(new File(WDS.vars.get('SCRIPT_
         <hashTree/>
         <com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler guiclass="com.googlecode.jmeter.plugins.webdriver.sampler.gui.WebDriverSamplerGui" testclass="com.googlecode.jmeter.plugins.webdriver.sampler.WebDriverSampler" testname="React Initial Load" enabled="true">
           <stringProp name="WebDriverSampler.script"><![CDATA[
-new GroovyShell(new Binding([WDS: WDS, port: WDS.vars.get('REACT_CLIENT_PORT')])).evaluate(new File(WDS.vars.get('SCRIPT_DIR') + '/inital_load/initial_load.groovy'))
+new GroovyShell(new Binding([WDS: WDS, port: WDS.vars.get('REACT_CLIENT_PORT')])).evaluate(new File(WDS.vars.get('SCRIPT_DIR') + '/initial_load/initial_load.groovy'))
 ]]></stringProp>
           <stringProp name="WebDriverSampler.parameters"></stringProp>
           <stringProp name="WebDriverSampler.language">groovy</stringProp>

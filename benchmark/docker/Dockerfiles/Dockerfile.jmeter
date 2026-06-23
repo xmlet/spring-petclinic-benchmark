@@ -1,0 +1,37 @@
+FROM debian:bookworm-slim
+
+ENV JMETER_VERSION=5.6.3
+ENV JMETER_HOME=/opt/apache-jmeter-${JMETER_VERSION}
+ENV PATH=$JMETER_HOME/bin:$PATH
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget ca-certificates \
+    openjdk-17-jre-headless \
+    chromium chromium-driver \
+    && rm -rf /var/lib/apt/lists/*
+# Note: chromium and chromium-driver are version-matched by Debian bookworm repos.
+# To pin versions, add =version suffix (e.g., chromium=123.0.6312.105-1).
+
+RUN wget -q https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz \
+    && tar xzf apache-jmeter-${JMETER_VERSION}.tgz -C /opt \
+    && rm apache-jmeter-${JMETER_VERSION}.tgz
+
+RUN wget -q https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/1.9/jmeter-plugins-manager-1.9.jar \
+    -O $JMETER_HOME/lib/ext/jmeter-plugins-manager.jar
+
+RUN wget -q https://repo1.maven.org/maven2/kg/apc/cmdrunner/2.3/cmdrunner-2.3.jar \
+    -O $JMETER_HOME/lib/cmdrunner-2.3.jar
+
+RUN java -cp $JMETER_HOME/lib/ext/jmeter-plugins-manager.jar:$JMETER_HOME/lib/cmdrunner-2.3.jar \
+    org.jmeterplugins.repository.PluginManagerCMDInstaller
+
+RUN PluginsManagerCMD.sh install jpgc-webdriver
+
+WORKDIR /benchmark
+COPY benchmark/lib/ lib/
+COPY benchmark/jmeter/ jmeter/
+COPY benchmark/webdriver-samples/ webdriver-samples/
+COPY benchmark/docker/entrypoint-jmeter.sh .
+RUN chmod +x jmeter/run-jmeter.sh entrypoint-jmeter.sh
+
+ENTRYPOINT ["./entrypoint-jmeter.sh"]

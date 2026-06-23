@@ -1,0 +1,14 @@
+.git/
+.gitignore
+.idea/
+*.iml
+
+benchmark/results/
+benchmark/jmeter/jmeter.log
+
+**/node_modules/
+.gradle/
+build/
+out/
+target/
+dist/

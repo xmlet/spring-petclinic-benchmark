@@ -5,12 +5,13 @@
 *.ear
 hs_err_pid*
 replay_pid*
+!gradle/wrapper/gradle-wrapper.jar
+!**/.mvn/wrapper/maven-wrapper.jar
 
 # Gradle
 .gradle/
 build/
 out/
-!gradle/wrapper/gradle-wrapper.jar
 
 # Maven
 target/

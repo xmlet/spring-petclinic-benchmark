@@ -34,7 +34,7 @@ birthDateInput.clear()
 birthDateInput.sendKeys('2020-01-15')
 
 def typeSelect = new Select(WDS.browser.findElement(By.cssSelector("select[name='typeId']")))
-typeSelect.selectByValue('2')
+typeSelect.selectByValue('2')  // 2 = "cat" in Spring PetClinic PetType list
 
 // 4. Submit form via button click
 WDS.browser.executeScript("arguments[0].click()",
