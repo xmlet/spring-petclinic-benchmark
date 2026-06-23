@@ -4,7 +4,7 @@ COPY petclinic-react/pom.xml .
 COPY petclinic-react/.mvn .mvn
 COPY petclinic-react/mvnw .
 COPY petclinic-react/src src
-RUN ./mvnw package -DskipTests
+RUN chmod +x mvnw && ./mvnw package -DskipTests
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
