@@ -103,7 +103,7 @@ class OwnerController(
 
     @GetMapping(Routes.OWNERS)
     fun processFindForm(): ResponseEntity<String> =
-        ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(ownersFind.view.render(owners.findByLastName("")))
+        ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(ownersFind.view.render(emptyList<Owner>()))
 
     /**
      * Custom handler for displaying an owner.

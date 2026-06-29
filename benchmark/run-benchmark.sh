@@ -4,6 +4,8 @@
 # Usage:
 #   ./run-benchmark.sh --docker          Run via Docker containers
 #   ./run-benchmark.sh --local           Run locally (default)
+#   ./run-benchmark.sh --docker --tc     Run with network constraints (iptables + tc on lo)
+#   ./run-benchmark.sh --local --tc      Run with network constraints (local mode, needs root/sudo)
 
 set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,11 +17,13 @@ source "$SCRIPT_DIR/lib/common.sh"
 # Parse arguments
 # ========================================
 MODE=""
+TC_ENABLED=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --docker) MODE="docker"; shift ;;
         --local) MODE="local"; shift ;;
+        --tc) TC_ENABLED=true; shift ;;
         *) print_error "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -28,16 +32,57 @@ done
 MODE="${MODE:-local}"
 
 # ========================================
+# tc helpers (iptables + tc fw on lo, needs sudo)
+# ========================================
+tc_setup() {
+    if [ "$TC_ENABLED" = true ]; then
+        print_info "Setting up iptables + tc network constraints on lo..."
+        if [ "$EUID" -eq 0 ]; then
+            bash "$SCRIPT_DIR/tc/setup-tc.sh"
+        else
+            sudo bash "$SCRIPT_DIR/tc/setup-tc.sh"
+        fi
+    fi
+}
+
+tc_teardown() {
+    if [ "$TC_ENABLED" = true ]; then
+        print_info "Removing network constraints..."
+        if [ "$EUID" -eq 0 ]; then
+            bash "$SCRIPT_DIR/tc/teardown-tc.sh"
+        else
+            sudo bash "$SCRIPT_DIR/tc/teardown-tc.sh"
+        fi
+    fi
+}
+
+# ========================================
 # Docker mode
 # ========================================
 run_docker() {
+    tc_setup
+
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
     export TIMESTAMP
     REPORT_DIR="./results/report_${TIMESTAMP}"
 
+    save_results() {
+        mkdir -p "$REPORT_DIR/server_logs"
+        print_info "Saving server logs..."
+        docker compose logs petclinic-thymeleaf > "$REPORT_DIR/server_logs/thymeleaf.log" 2>&1 || true
+        docker compose logs petclinic-htmlflow-datastar > "$REPORT_DIR/server_logs/htmlflow-datastar.log" 2>&1 || true
+        docker compose logs petclinic-react-backend > "$REPORT_DIR/server_logs/react-backend.log" 2>&1 || true
+        docker compose logs petclinic-react-frontend > "$REPORT_DIR/server_logs/react-frontend.log" 2>&1 || true
+
+        print_info "Extracting benchmark results..."
+        docker compose cp jmeter:/benchmark/results/report_${TIMESTAMP}/. "$REPORT_DIR/" 2>/dev/null || true
+    }
+
     docker_cleanup() {
+        save_results
         print_info "Cleaning up Docker containers..."
         docker compose down -v 2>/dev/null || true
+        tc_teardown
     }
     trap docker_cleanup EXIT SIGINT SIGTERM
 
@@ -49,16 +94,7 @@ run_docker() {
     print_info "Following JMeter output (Ctrl+C to stop)..."
     docker compose logs -f jmeter || true
 
-    mkdir -p "$REPORT_DIR/server_logs"
-    print_info "Saving server logs..."
-    docker compose logs petclinic-thymeleaf > "$REPORT_DIR/server_logs/thymeleaf.log" 2>&1
-    docker compose logs petclinic-htmlflow-datastar > "$REPORT_DIR/server_logs/htmlflow-datastar.log" 2>&1
-    docker compose logs petclinic-react-backend > "$REPORT_DIR/server_logs/react-backend.log" 2>&1
-    docker compose logs petclinic-react-frontend > "$REPORT_DIR/server_logs/react-frontend.log" 2>&1
-
-    print_info "Extracting benchmark results..."
-    docker compose cp jmeter:/benchmark/results/report_${TIMESTAMP}/. "$REPORT_DIR/"
-
+    save_results
     docker compose down -v
 
     print_info "Done. Results in: $REPORT_DIR"
@@ -103,11 +139,17 @@ stop_servers() {
 }
 
 run_local() {
+    tc_setup
+
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
     export REPORT_DIR="$SCRIPT_DIR/results/report_${TIMESTAMP}"
     mkdir -p "$REPORT_DIR/server_logs"
 
-    trap stop_servers EXIT SIGINT SIGTERM
+    cleanup() {
+        stop_servers
+        tc_teardown
+    }
+    trap cleanup EXIT SIGINT SIGTERM
 
     start_servers
     wait_for_all_services

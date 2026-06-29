@@ -6,5 +6,5 @@ source "$SCRIPT_DIR/lib/common.sh"
 
 wait_for_all_services
 
-echo "Starting benchmark..."
+print_info "Starting benchmark..."
 exec ./jmeter/run-jmeter.sh

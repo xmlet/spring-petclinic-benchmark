@@ -17,11 +17,6 @@ wait.until({ d ->
 })
 
 // 2. Click "Add New Pet" button to trigger SSE GET that patches the form into the DOM
-wait.until({ d ->
-    try {
-        d.findElement(By.xpath("//button[contains(., 'Add New Pet')]")).isDisplayed()
-    } catch (e) { false }
-})
 WDS.browser.findElement(By.xpath("//button[contains(., 'Add New Pet')]")).click()
 wait.until({ d ->
     try {
@@ -67,6 +62,6 @@ wait.until({ d ->
     } catch (e) { false }
 })
 
-WDS.sampleResult.setResponseData("Pet created via full roundtrip: " + petName)
+WDS.sampleResult.setResponseData("Pet created: " + petName)
 WDS.sampleResult.setDataType(org.apache.jmeter.samplers.SampleResult.TEXT)
 WDS.sampleResult.setSuccessful(true)

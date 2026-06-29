@@ -58,7 +58,7 @@ class OwnersFind {
             dataBind("last-name")
             dataOn(Input) {
                 get(Routes.OWNERS_FIND_RESULT)
-                modifiers { debounce(200.milliseconds) }
+                //modifiers { debounce(200.milliseconds) }
             }
         }
     }

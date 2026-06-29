@@ -51,6 +51,6 @@ wait.until({ d ->
     } catch (e) { false }
 })
 
-WDS.sampleResult.setResponseData("Pet created via full roundtrip: " + petName)
+WDS.sampleResult.setResponseData("Pet created: " + petName)
 WDS.sampleResult.setDataType(org.apache.jmeter.samplers.SampleResult.TEXT)
 WDS.sampleResult.setSuccessful(true)

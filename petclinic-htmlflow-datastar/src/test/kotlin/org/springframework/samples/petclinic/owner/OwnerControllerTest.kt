@@ -223,12 +223,12 @@ class OwnerControllerTest {
             .perform(get(Routes.OWNERS))
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-            .andExpect(content().string(containsString("Find Owners")))
+            .andExpect(content().string(containsString("Owners")))
             .andExpect(
                 content()
                     .string(
                         containsString(
-                            "<input class=\"fom\" type=\"text\" name=\"lastName\" placeholder=\"Find Owners\" data-bind:last-name=\"\" data-on:input__debounce.200ms=\"@get('/owners/find/result')\">",
+                            "<input class=\"fom\" type=\"text\" name=\"lastName\" placeholder=\"Find Owners\" data-bind:last-name=\"\" data-on:input=\"@get('/owners/find/result')\">",
                         ),
                     ),
             ).andExpect(content().string(containsString("<table id=\"owners\" class=\"table table-striped\">")))
@@ -238,19 +238,12 @@ class OwnerControllerTest {
             .andExpect(content().string(containsString("Telephone")))
             .andExpect(content().string(containsString("Pets")))
             .andExpect(content().string(containsString("<tbody id=\"results-table\">")))
-            .andExpect(content().string(containsString("<a href=\"/owners/1\">")))
-            .andExpect(content().string(containsString("George Franklin")))
-            .andExpect(content().string(containsString("110 W. Liberty St.")))
-            .andExpect(content().string(containsString("Madison")))
-            .andExpect(content().string(containsString("6085551023")))
-            .andExpect(content().string(containsString("Max")))
             .andExpect(content().string(containsString("<a class=\"btn btn-primary\" href=\"/owners/new\">")))
             .andExpect(content().string(containsString("Add Owner")))
     }
 
     @Test
     fun testProcessFindFormInit() {
-        given(owners.findByLastName("")).willReturn(Lists.newArrayList(george, Owner()))
         mockMvc
             .perform(get(Routes.OWNERS))
             .andExpect(status().isOk)
@@ -262,12 +255,7 @@ class OwnerControllerTest {
             .andExpect(content().string(containsString("City")))
             .andExpect(content().string(containsString("Telephone")))
             .andExpect(content().string(containsString("Pets")))
-            .andExpect(content().string(containsString("<a href=\"/owners/1\">")))
-            .andExpect(content().string(containsString("George Franklin")))
-            .andExpect(content().string(containsString("110 W. Liberty St.")))
-            .andExpect(content().string(containsString("Madison")))
-            .andExpect(content().string(containsString("6085551023")))
-            .andExpect(content().string(containsString("Max")))
+            .andExpect(content().string(containsString("<tbody id=\"results-table\">")))
     }
 
     @Test

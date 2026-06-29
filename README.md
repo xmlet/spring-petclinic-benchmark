@@ -19,7 +19,7 @@ Or step by step:
 
 ```bash
 cd benchmark
-docker compose build
+docker compose build --no-cache
 docker compose up -d
 docker compose logs -f jmeter
 
@@ -54,10 +54,11 @@ Services are started automatically, benchmark runs, then everything shuts down.
 
 ## Benchmark
 
-The benchmark runs two test types per implementation:
+The benchmark runs three test types per implementation:
 
 1. **Initial Load** — Selenium opens a real browser and waits for page to load. Measures first loading performance.
-2. **WebDriver Full Roundtrip** — Selenium opens a real browser, fills the pet creation form, submits, and waits for the DOM to update. Measures end-to-end user-perceived performance.
+2. **Create Pet** — Selenium opens a real browser, fills the pet creation form, submits, and waits for the DOM to update. Measures end-to-end user-perceived performance.
+3. **Find Owners** — Selenium opens a real browser, fills the search form, submits, and waits for the results table. Measures end-to-end search performance.
 
 ### Configuration
 
@@ -73,6 +74,22 @@ WARMUP_LOOPS=10               # warm-up iterations (discarded from results)
 
 1. **Warm-up** — Runs `WARMUP_LOOPS` iterations to warm JVM caches, JIT compilation, and connection pools. Results are discarded. Output is captured to `warmup.log`.
 2. **Main Benchmark** — Runs `TEST_LOOPS` iterations with results saved to JTL and stdout/stderr captured to `jmeter.log`.
+
+### Network Constraints (`--tc`)
+
+Optionally simulate a realistic wide-area network with:
+
+```bash
+./run-benchmark.sh --docker --tc 
+./run-benchmark.sh --local --tc 
+```
+These require sudo.
+
+Uses `iptables` to mark HTTP traffic to/from ports 8080-8082 and 4444 with a firewall mark, then `tc` (Traffic Control) `netem` on the loopback interface routes marked packets through a delay/loss qdisc. Chromedriver traffic (random ephemeral ports) is unmarked and bypasses the constraint.
+
+Default parameters: **600ms delay ±100ms jitter, 5% packet loss** — configured in `benchmark/tc/setup-tc.sh` (arguments: `DELAY`, `JITTER`, `LOSS`).
+
+Teardown with `benchmark/tc/teardown-tc.sh` (also runs automatically on Ctrl+C).
 
 ### Results
 
@@ -112,7 +129,7 @@ Uses `network_mode: "host"` so all containers share the host network. This avoid
 1. Installs Chromium + ChromeDriver for WebDriver browser tests
 2. Downloads Apache JMeter 5.6.3
 3. Installs WebDriver plugin and Custom Samplers via Plugins Manager
-4. Entrypoint waits for all three servers to be reachable, then runs JMeter (always headless)
+4. Entrypoint waits for all four services to be reachable, then runs JMeter (always headless)
 
 ## Project Structure
 
@@ -121,6 +138,7 @@ Uses `network_mode: "host"` so all containers share the host network. This avoid
 ├── petclinic-htmlflow-datastar/           # HtmlFlow-DataStar SSE (Kotlin, Gradle)
 ├── petclinic-react/                       # React SPA (Java + TypeScript, Maven + npm)
 ├── .dockerignore                          # Docker build context exclusions
+├── .gitattributes                         # LF line endings for cross-platform Docker builds
 ├── benchmark/
 │   ├── docker/
 │   │   ├── Dockerfiles/
@@ -139,6 +157,9 @@ Uses `network_mode: "host"` so all containers share the host network. This avoid
 │   │   └── create_pet/
 │   ├── lib/
 │   │   └── common.sh                      # Shared functions (wait_for, colors, print helpers)
+│   ├── tc/
+│   │   ├── setup-tc.sh                    # iptables + tc network constraint setup
+│   │   └── teardown-tc.sh                 # network constraint teardown
 │   ├── build-all.sh
-│   └── run-benchmark.sh                   # Entry point (--docker / --local)
+│   └── run-benchmark.sh                   # Entry point (--docker / --local / --tc)
 ```
