@@ -150,7 +150,7 @@ internal fun Tbody<*>.petEditButtons(disabled: Boolean) {
         td {
             dyn { pet: Pet ->
                 button {
-                    attrId("save-edit-pet")
+                    attrId("save-pet")
                     attrClass("btn btn-primary")
                     attrDisabled(disabled)
                     dataOn(Click) {
