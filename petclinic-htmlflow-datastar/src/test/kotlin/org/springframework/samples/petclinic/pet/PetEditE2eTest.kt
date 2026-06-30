@@ -44,7 +44,7 @@ class PetEditE2eTest {
                 page.waitForTimeout(500.0)
 
                 // The edit form should now be displayed (check for edit buttons)
-                val saveEditButton = page.querySelector("button#save-edit-pet")
+                val saveEditButton = page.querySelector("button#save-pet")
                 val cancelEditButton = page.querySelector("button#cancel-pet")
 
                 assert(saveEditButton != null) { "Save edit button should be present" }
@@ -97,7 +97,7 @@ class PetEditE2eTest {
                 birthDateInput.fill("2019-06-10")
 
                 // Click the Save button
-                page.locator("button#save-edit-pet").click()
+                page.locator("button#save-pet").click()
 
                 // Wait for the form to be saved
                 page.waitForFunction("!document.querySelector('input[data-bind\\\\:name$petId]')")

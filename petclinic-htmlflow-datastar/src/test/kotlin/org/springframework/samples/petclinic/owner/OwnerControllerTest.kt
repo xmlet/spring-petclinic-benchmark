@@ -278,7 +278,7 @@ class OwnerControllerTest {
                 content()
                     .string(
                         containsString(
-                            $$"<button data-signals:_editing__ifmissing=\"false\" data-attr:disabled=\"$_editing\" data-on:click=\"$_editing = true; @get('/owners/$${george.id}/edit')\" class=\"btn btn-primary\">",
+                            $$"""<button id="edit-owner" data-on:click="@get('/owners/$${george.id}/edit')" class="btn btn-primary">""",
                         ),
                     ),
             ).andExpect(content().string(containsString("Edit Owner")))
@@ -286,7 +286,7 @@ class OwnerControllerTest {
                 content()
                     .string(
                         containsString(
-                            $$"data-on:click=\"$_editing = true; @get('/owners/1/pets/new')\"",
+                            $$"data-on:click=\"@get('/owners/1/pets/new')\"",
                         ),
                     ),
             ).andExpect(content().string(containsString("Add New Pet")))
@@ -313,7 +313,7 @@ class OwnerControllerTest {
                 content()
                     .string(
                         containsString(
-                            $$"<button data-signals:_editing__ifmissing=\"false\" id=\"pet-edit\" class=\"btn btn-primary\" data-on:click=\"$_editing = true; @get('/owners/$${george.id}/pets/$${george.pets.first().id}/edit')\" data-indicator:_fetching=\"\" data-attr:disabled=\"$_fetching || $_editing\">",
+                            $$"<button id=\"pet-edit\" class=\"btn btn-primary\" data-on:click=\"@get('/owners/$${george.id}/pets/$${george.pets.first().id}/edit')\" data-indicator:_fetching=\"\" data-attr:disabled=\"false || $_fetching\">",
                         ),
                     ),
             ).andExpect(
