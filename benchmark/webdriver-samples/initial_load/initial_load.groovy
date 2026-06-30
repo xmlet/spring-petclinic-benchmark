@@ -2,7 +2,7 @@ import org.openqa.selenium.By
 import org.openqa.selenium.support.ui.WebDriverWait
 import java.time.Duration
 
-def wait = new WebDriverWait(WDS.browser, Duration.ofSeconds(100))
+def wait = new WebDriverWait(WDS.browser, Duration.ofSeconds(100), Duration.ofMillis(100))
 def ownerId = WDS.vars.get('OWNER_ID')
 
 WDS.browser.get("http://localhost:${port}/owners/" + ownerId)

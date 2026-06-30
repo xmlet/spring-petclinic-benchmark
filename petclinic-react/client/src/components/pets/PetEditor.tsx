@@ -98,6 +98,9 @@ export default class PetEditor extends React.Component<IPetEditorProps, IPetEdit
           <div className='form-group'>
             <div className='col-sm-offset-2 col-sm-10'>
               <button className='btn btn-default' type='submit' onClick={this.onSubmit}>{formLabel}</button>
+              {editablePet.isNew && (
+                <Link to={'/owners/' + owner.id} className='btn btn-default'>Cancel</Link>
+              )}
             </div>
           </div>
         </form>

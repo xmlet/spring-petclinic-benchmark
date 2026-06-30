@@ -3,7 +3,7 @@ import org.openqa.selenium.support.ui.Select
 import org.openqa.selenium.support.ui.WebDriverWait
 import java.time.Duration
 
-def wait = new WebDriverWait(WDS.browser, Duration.ofSeconds(100))
+def wait = new WebDriverWait(WDS.browser, Duration.ofSeconds(100), Duration.ofMillis(100))
 def port = WDS.vars.get('REACT_CLIENT_PORT') ?: '4444'
 
 // 1. Load the find owners page (full page load)

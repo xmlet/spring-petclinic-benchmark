@@ -80,7 +80,7 @@ class OwnersDetails(
             }
         }
 
-    val petAddView: HtmlView<Owner> =
+    val petAddView: HtmlView<Int> =
         view {
             tr {
                 attrId("pets-add")

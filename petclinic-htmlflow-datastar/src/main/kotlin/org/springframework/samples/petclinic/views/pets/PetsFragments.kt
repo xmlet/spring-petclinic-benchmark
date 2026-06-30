@@ -124,13 +124,13 @@ internal fun Tbody<*>.petAddButtons() {
                 dataSignal("_editing", false) {
                     modifiers { ifMissing() }
                 }
-            dyn { owner: Owner ->
+            dyn { ownerId: Int ->
                 button {
                     attrId("save-pet")
                     attrClass("btn btn-primary")
                     dataOn(Click) {
                         editing.setValue(false)
-                        post(Routes.petNew(owner.id))
+                        post(Routes.petNew(ownerId))
                     }
                     val fetching = dataIndicator("_fetching")
                     dataAttr("disabled") { +fetching }
@@ -138,13 +138,13 @@ internal fun Tbody<*>.petAddButtons() {
                     text("save")
                 }
             }
-            dyn { owner: Owner ->
+            dyn { ownerId: Int ->
                 button {
                     attrId("cancel-pet")
                     attrClass("btn btn-primary")
                     dataOn(Click) {
                         editing.setValue(false)
-                        get(Routes.petNewCancel(owner.id))
+                        get(Routes.petNewCancel(ownerId))
                     }
                     val fetching = dataIndicator("_fetching")
                     dataAttr("disabled") { +fetching }

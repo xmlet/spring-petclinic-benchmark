@@ -60,31 +60,20 @@ class PetController(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 
-    @ModelAttribute("types")
-    fun populatePetTypes(): Collection<PetType> = this.pets.findPetTypes()
-
-    @ModelAttribute("owner")
-    fun findOwner(
-        @PathVariable("ownerId") ownerId: Int,
-    ): Owner = owners.findById(ownerId)
-
     @InitBinder("owner")
     fun initOwnerBinder(dataBinder: WebDataBinder) {
         dataBinder.setDisallowedFields("id")
     }
 
-    @InitBinder("pet")
-    fun initPetBinder(dataBinder: WebDataBinder) {
-        dataBinder.validator = PetValidator()
-    }
-
     @GetMapping(Routes.PET_NEW)
-    fun initCreation(owner: Owner): StreamingResponseBody =
+    fun initCreation(
+        @PathVariable("ownerId") ownerId: Int,
+    ): StreamingResponseBody =
         StreamingResponseBody { stream ->
             val response = adapterResponse(stream)
             val generator = ServerSentEventGenerator(response)
             generator.patchElements(
-                ownersDetails.petAddView.render(owner),
+                ownersDetails.petAddView.render(ownerId),
                 PatchElementsOptions(
                     selector = "#pets-table-body",
                     mode = ElementPatchMode.Prepend,
@@ -96,7 +85,7 @@ class PetController(
     @PostMapping(Routes.PET_NEW, produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     @ResponseStatus(HttpStatus.OK)
     fun processCreation(
-        owner: Owner,
+        @PathVariable("ownerId") ownerId: Int,
         @RequestBody datastarBody: String,
     ): StreamingResponseBody =
         StreamingResponseBody { stream ->
@@ -104,20 +93,18 @@ class PetController(
             val generator = ServerSentEventGenerator(response)
             val jsonObject = json.parseToJsonElement(datastarBody).jsonObject
             val pet = jsonToPet(jsonObject, "New", pets)
-            val errors = BeanPropertyBindingResult(pet, "pet")
-            PetValidator().validate(pet, errors)
-            if (!errors.hasErrors()) {
-                owner.addPet(pet)
-                pets.save(pet)
-                generator.patchSignals(resetPetSignals("New"))
-                generator.patchElements(
-                    ownersDetails.petRow.render(pet),
-                    PatchElementsOptions(
-                        selector = "#pets-add",
-                        mode = ElementPatchMode.Replace,
-                    ),
-                )
-            }
+            val owner = owners.findById(ownerId)
+            // for efficiency, don't validate input
+            pet.owner = owner
+            pets.save(pet)
+            generator.patchElements(
+                ownersDetails.petRow.render(pet),
+                PatchElementsOptions(
+                    selector = "#pets-add",
+                    mode = ElementPatchMode.Replace,
+                ),
+            )
+            generator.patchSignals(resetPetSignals("New"))
             stream.flush()
         }
 
