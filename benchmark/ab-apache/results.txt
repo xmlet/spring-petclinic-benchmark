@@ -1,0 +1,47 @@
+This is ApacheBench, Version 2.3 <$Revision: 1934973 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /owners/1/pets/new/db-bench
+Document Length:        11 bytes
+
+Concurrency Level:      1
+Time taken for tests:   260.487 seconds
+Complete requests:      5000
+Failed requests:        0
+Total transferred:      720000 bytes
+Total body sent:        1145000
+HTML transferred:       55000 bytes
+Requests per second:    19.19 [#/sec] (mean)
+Time per request:       52.097 [ms] (mean)
+Time per request:       52.097 [ms] (mean, across all concurrent requests)
+Transfer rate:          2.70 [Kbytes/sec] received
+                        4.29 kb/s sent
+                        6.99 kb/s total
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    1   0.2      2       5
+Processing:    44   51   4.0     50      92
+Waiting:       44   51   4.0     50      92
+Total:         46   52   4.0     52      94
+ERROR: The median and mean for the initial connection time are more than twice the standard
+       deviation apart. These results are NOT reliable.
+
+Percentage of the requests served within a certain time (ms)
+  50%     52
+  66%     54
+  75%     55
+  80%     55
+  90%     56
+  95%     57
+  98%     59
+  99%     63
+ 100%     94 (longest request)

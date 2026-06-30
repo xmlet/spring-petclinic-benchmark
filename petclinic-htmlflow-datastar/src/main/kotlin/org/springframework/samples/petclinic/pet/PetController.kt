@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.samples.petclinic.Routes
 import org.springframework.samples.petclinic.owner.Owner
 import org.springframework.samples.petclinic.owner.OwnerRepository
@@ -203,6 +204,24 @@ class PetController(
             generator.patchSignals(resetPetSignals(petId.toString()))
             stream.flush()
         }
+
+    @PostMapping("/owners/{ownerId}/pets/new/db-bench")
+    fun processCreatePetDBBench(
+        owner: Owner,
+        @RequestBody datastarBody: String,
+    ): ResponseEntity<Any> {
+        val jsonObject = json.parseToJsonElement(datastarBody).jsonObject
+        val pet = jsonToPet(jsonObject, "New", pets)
+        val errors = BeanPropertyBindingResult(pet, "pet")
+        PetValidator().validate(pet, errors)
+        if (!errors.hasErrors()) {
+            owner.addPet(pet)
+            pets.save(pet)
+            return  ResponseEntity("Pet Created", HttpStatus.OK)
+        }
+        return ResponseEntity("Something went wrong",HttpStatus.BAD_REQUEST)
+    }
+
 
     private fun resetPetSignals(suffix: String) =
         """
