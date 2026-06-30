@@ -32,19 +32,14 @@ import org.xmlet.htmlflow.datastar.attributes.dataSignal
 import org.xmlet.htmlflow.datastar.events.Click
 
 // Used in OwnersDetails
-internal fun Div<*>.addNewPetButton() {
+internal fun Div<*>.addNewPetButton(disabled: Boolean) {
     button {
-        val editing =
-            dataSignal("_editing", false) {
-                modifiers { ifMissing() }
-            }
-        dataAttr("disabled") { +editing }
         dyn { owner: Owner ->
             dataOn(Click) {
-                editing.setValue(true)
                 get(Routes.petNew(owner.id))
             }
             attrClass("btn btn-primary")
+            attrDisabled(disabled)
         }
         text("Add New Pet")
     }
@@ -120,16 +115,11 @@ internal fun Td<*>.petsInputs(
 internal fun Tbody<*>.petAddButtons() {
     tr {
         td {
-            val editing =
-                dataSignal("_editing", false) {
-                    modifiers { ifMissing() }
-                }
             dyn { owner: Owner ->
                 button {
                     attrId("save-pet")
                     attrClass("btn btn-primary")
                     dataOn(Click) {
-                        editing.setValue(false)
                         post(Routes.petNew(owner.id))
                     }
                     val fetching = dataIndicator("_fetching")
@@ -143,7 +133,6 @@ internal fun Tbody<*>.petAddButtons() {
                     attrId("cancel-pet")
                     attrClass("btn btn-primary")
                     dataOn(Click) {
-                        editing.setValue(false)
                         get(Routes.petNewCancel(owner.id))
                     }
                     val fetching = dataIndicator("_fetching")
@@ -156,19 +145,15 @@ internal fun Tbody<*>.petAddButtons() {
     }
 }
 
-internal fun Tbody<*>.petEditButtons() {
+internal fun Tbody<*>.petEditButtons(disabled: Boolean) {
     tr {
         td {
-            val editing =
-                dataSignal("_editing", false) {
-                    modifiers { ifMissing() }
-                }
             dyn { pet: Pet ->
                 button {
                     attrId("save-edit-pet")
                     attrClass("btn btn-primary")
+                    attrDisabled(disabled)
                     dataOn(Click) {
-                        editing.setValue(false)
                         patch(Routes.petEdit(pet.owner!!.id, pet.id))
                     }
                     val fetching = dataIndicator("_fetching")
@@ -181,8 +166,8 @@ internal fun Tbody<*>.petEditButtons() {
                 button {
                     attrId("cancel-pet")
                     attrClass("btn btn-primary")
+                    attrDisabled(disabled)
                     dataOn(Click) {
-                        editing.setValue(false)
                         get(Routes.petEditCancel(pet.owner!!.id, pet.id))
                     }
                     val fetching = dataIndicator("_fetching")
@@ -194,3 +179,4 @@ internal fun Tbody<*>.petEditButtons() {
         }
     }
 }
+

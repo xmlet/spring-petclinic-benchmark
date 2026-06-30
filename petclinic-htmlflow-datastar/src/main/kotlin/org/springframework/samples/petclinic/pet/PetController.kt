@@ -28,6 +28,7 @@ import org.springframework.samples.petclinic.owner.OwnerRepository
 import org.springframework.samples.petclinic.system.adapterResponse
 import org.springframework.samples.petclinic.system.jsonToPet
 import org.springframework.samples.petclinic.views.owners.OwnersDetails
+import org.springframework.samples.petclinic.views.visits.editPetButtonView
 import org.springframework.stereotype.Controller
 import org.springframework.util.StringUtils
 import org.springframework.validation.BeanPropertyBindingResult
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
+import kotlin.math.log
 
 /**
  * @author Juergen Hoeller
@@ -90,6 +92,22 @@ class PetController(
                     mode = ElementPatchMode.Prepend,
                 ),
             )
+            // PATCH EDIT OWNER AND ADD PET BUTTONS TO DISABLED
+            generator.patchElements(
+                ownersDetails.ownerButtonsView(true).render(owner),
+                PatchElementsOptions(
+                    selector = "#owners-buttons",
+                )
+            )
+            // PATCH EDIT OWNER AND ADD PET BUTTONS TO DISABLED
+            owner.pets.stream().forEach {
+                generator.patchElements(
+                    editPetButtonView(it, owner, true).render(),
+                    PatchElementsOptions(
+                        selector = "#edit-pet-add-visit-buttons-${it.id}",
+                    )
+                )
+            }
             stream.flush()
         }
 
@@ -109,7 +127,6 @@ class PetController(
             if (!errors.hasErrors()) {
                 owner.addPet(pet)
                 pets.save(pet)
-                generator.patchSignals(resetPetSignals("New"))
                 generator.patchElements(
                     ownersDetails.petRow.render(pet),
                     PatchElementsOptions(
@@ -122,11 +139,11 @@ class PetController(
         }
 
     @GetMapping(Routes.PET_NEW_CANCEL)
-    fun cancelCreation(): StreamingResponseBody =
+    fun cancelCreation(owner: Owner): StreamingResponseBody =
         StreamingResponseBody { stream ->
             val response = adapterResponse(stream)
             val generator = ServerSentEventGenerator(response)
-            generator.patchSignals(resetPetSignals("New"))
+            println(owner.pets.stream().forEach { println(it.name) })
             generator.patchElements(
                 "",
                 PatchElementsOptions(
@@ -134,25 +151,40 @@ class PetController(
                     mode = ElementPatchMode.Remove,
                 ),
             )
+            // Enable Edit Owner and Add Pet Buttons
+            generator.patchElements(
+                ownersDetails.ownerButtonsView(false).render(owner),
+                PatchElementsOptions(
+                    selector = "#owners-buttons",
+                )
+            )
+            // Set Edit Pet Buttons to enabled
+            owner.pets.stream().forEach {
+                generator.patchElements(
+                    editPetButtonView(it, owner, false).render(),
+                    PatchElementsOptions(
+                        selector = "#edit-pet-add-visit-buttons-${it.id}",
+                    )
+                )
+            }
             stream.flush()
         }
 
     @GetMapping(Routes.PET_EDIT)
     fun initUpdate(
+        owner: Owner,
         @PathVariable petId: Int,
     ): StreamingResponseBody =
         StreamingResponseBody { stream ->
             val response = adapterResponse(stream)
             val generator = ServerSentEventGenerator(response)
             val pet = pets.findById(petId)
-            generator.patchSignals(
-                """
-                {
-                 "name$petId": "${pet.name}",
-                 "birthDate$petId": "${pet.birthDate}",
-                 "type$petId": "${pet.type}"
-                }
-                """.trimIndent(),
+            // PATCH EDIT OWNER AND ADD PET BUTTONS TO DISABLED
+            generator.patchElements(
+                ownersDetails.ownerButtonsView(true).render(owner),
+                PatchElementsOptions(
+                    selector = "#owners-buttons",
+                )
             )
             generator.patchElements(ownersDetails.petEditRow.render(pet))
             stream.flush()
@@ -194,15 +226,23 @@ class PetController(
     @GetMapping(Routes.PET_EDIT_CANCEL)
     fun cancelUpdate(
         @PathVariable("petId") petId: Int,
+        owner: Owner,
     ): StreamingResponseBody =
         StreamingResponseBody { stream ->
             val response = adapterResponse(stream)
             val generator = ServerSentEventGenerator(response)
             val pet = pets.findById(petId)
             generator.patchElements(ownersDetails.petRow.render(pet))
-            generator.patchSignals(resetPetSignals(petId.toString()))
+            // Enable Edit Owner and Add Pet Buttons
+            generator.patchElements(
+                ownersDetails.ownerButtonsView(false).render(owner),
+                PatchElementsOptions(
+                    selector = "#owners-buttons",
+                )
+            )
             stream.flush()
         }
+
 
     private fun resetPetSignals(suffix: String) =
         """

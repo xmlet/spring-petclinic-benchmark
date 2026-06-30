@@ -25,6 +25,7 @@ import org.xmlet.htmlapifaster.Tbody
 import org.xmlet.htmlapifaster.b
 import org.xmlet.htmlapifaster.br
 import org.xmlet.htmlapifaster.button
+import org.xmlet.htmlapifaster.div
 import org.xmlet.htmlapifaster.h2
 import org.xmlet.htmlapifaster.i
 import org.xmlet.htmlapifaster.table
@@ -32,11 +33,9 @@ import org.xmlet.htmlapifaster.tbody
 import org.xmlet.htmlapifaster.td
 import org.xmlet.htmlapifaster.th
 import org.xmlet.htmlapifaster.tr
-import org.xmlet.htmlflow.datastar.Signal
 import org.xmlet.htmlflow.datastar.attributes.dataAttr
 import org.xmlet.htmlflow.datastar.attributes.dataIndicator
 import org.xmlet.htmlflow.datastar.attributes.dataOn
-import org.xmlet.htmlflow.datastar.attributes.dataSignal
 import org.xmlet.htmlflow.datastar.events.Click
 
 internal const val ERROR_MSG = "Either fields are empty or telephone number has other characters."
@@ -115,7 +114,7 @@ class OwnersDetails(
                     table {
                         attrClass("visits-table")
                         tbody {
-                            petEditButtons()
+                            petEditButtons(false)
                         }
                     }
                 }
@@ -143,8 +142,11 @@ class OwnersDetails(
             }
         }
 
-        editOwnerButton()
-        addNewPetButton()
+        div {
+            attrId("owners-buttons")
+            editOwnerButton()
+            addNewPetButton(false)
+        }
 
         br {}
         br {}
@@ -159,21 +161,24 @@ class OwnersDetails(
         }
     }
 
-    private fun Div<*>.editOwnerButton() {
+    private fun Div<*>.editOwnerButton(disabled: Boolean = false) {
         button {
-            val editing =
-                dataSignal("_editing", false) {
-                    modifiers { ifMissing() }
-                }
-            dataAttr("disabled") { +editing }
+            attrId("edit-owner")
+            attrDisabled(disabled)
             dyn { owner: Owner ->
                 dataOn(Click) {
-                    editing.setValue(true)
                     get(Routes.ownerEdit(owner.id))
                 }
                 attrClass("btn btn-primary")
             }
             text("Edit Owner")
+        }
+    }
+    fun ownerButtonsView(disabled: Boolean) = view<Owner> {
+        div {
+            attrId("owners-buttons")
+            editOwnerButton(disabled)
+            addNewPetButton(disabled)
         }
     }
 
@@ -237,16 +242,11 @@ class OwnersDetails(
         }
         tr {
             td {
-                val editing =
-                    dataSignal("_editing", false) {
-                        modifiers { ifMissing() }
-                    }
                 dyn { owner: Owner ->
                     button {
                         attrId("save-owner")
                         attrClass("btn btn-primary")
                         dataOn(Click) {
-                            editing.setValue(false)
                             patch(Routes.ownerEdit(owner.id))
                         }
                         val fetching = dataIndicator("_fetching")
@@ -261,7 +261,6 @@ class OwnersDetails(
                         attrId("cancel-edit")
                         attrClass("btn btn-primary")
                         dataOn(Click) {
-                            editing.setValue(false)
                             get(Routes.ownerEditCancel(owner.id))
                         }
                         val fetching = dataIndicator("_fetching")
