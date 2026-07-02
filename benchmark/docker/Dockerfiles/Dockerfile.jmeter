@@ -27,6 +27,18 @@ RUN java -cp $JMETER_HOME/lib/ext/jmeter-plugins-manager.jar:$JMETER_HOME/lib/cm
 
 RUN PluginsManagerCMD.sh install jpgc-webdriver
 
+# Upgrade Selenium to 4.45.0 with devtools v149 for CDP Chrome performance logging
+ARG SELENIUM_VERSION=4.45.0
+RUN rm -f $JMETER_HOME/lib/selenium-*-4.27.0.jar $JMETER_HOME/lib/selenium-*-4.15.0.jar && \
+    for jar in selenium-api selenium-chrome-driver selenium-chromium-driver \
+               selenium-edge-driver selenium-firefox-driver selenium-ie-driver \
+               selenium-http selenium-json selenium-manager selenium-os \
+               selenium-remote-driver selenium-support; do \
+      wget -q "https://repo1.maven.org/maven2/org/seleniumhq/selenium/${jar}/${SELENIUM_VERSION}/${jar}-${SELENIUM_VERSION}.jar" \
+           -O "$JMETER_HOME/lib/${jar}-${SELENIUM_VERSION}.jar" || echo "FAIL: $jar"; done && \
+    wget -q "https://repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-devtools-v149/${SELENIUM_VERSION}/selenium-devtools-v149-${SELENIUM_VERSION}.jar" \
+         -O "$JMETER_HOME/lib/selenium-devtools-v149-${SELENIUM_VERSION}.jar"
+
 WORKDIR /benchmark
 COPY benchmark/lib/ lib/
 COPY benchmark/jmeter/ jmeter/

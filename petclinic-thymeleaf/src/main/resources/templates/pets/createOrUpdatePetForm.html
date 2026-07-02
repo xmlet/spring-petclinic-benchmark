@@ -29,8 +29,6 @@
                     th:with="text=${pet['new']} ? 'Add Pet' : 'Update Pet'"
                     class="btn btn-primary" type="submit" th:text="${text}">Add
                 Pet</button>
-            <a th:if="${pet['new']}" th:href="@{/owners/{ownerId}(ownerId=${pet.owner?.id})}"
-               class="btn btn-default">Cancel</a>
         </div>
     </div>
 </form>
